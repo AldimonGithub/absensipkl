@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Absensi - Sistem Absensi</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <div class="admin-dashboard" style="background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);">
+            <div class="top-bar">
+                <h2>Data Absensi Saya</h2>
+                <button type="button" class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+            
+            <!-- Student Info -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <div>
+                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;">Nama Siswa</p>
+                    <p style="font-weight: 600; font-size: 16px;" id="studentName">-</p>
+                </div>
+                <div>
+                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;">Kelas</p>
+                    <p style="font-weight: 600; font-size: 16px;" id="studentClass">-</p>
+                </div>
+            </div>
+            
+            <!-- Today's Attendance Summary -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="margin-bottom: 15px; color: #333;">Ringkasan Hari Ini</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                    <!-- Status Masuk -->
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+                        <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Status Masuk</p>
+                        <p style="font-weight: 600; font-size: 16px;" id="statusMasuk">-</p>
+                        <p style="font-size: 11px; color: #999; margin-top: 5px;" id="jamMasuk">-</p>
+                    </div>
+                    
+                    <!-- Waktu Status -->
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #764ba2;">
+                        <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Waktu Status</p>
+                        <p style="font-weight: 600; font-size: 16px;" id="statusWaktu">-</p>
+                    </div>
+                    
+                    <!-- Status Pulang -->
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                        <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Status Pulang</p>
+                        <p style="font-weight: 600; font-size: 16px;" id="statusPulang">-</p>
+                        <p style="font-size: 11px; color: #999; margin-top: 5px;" id="jamPulang">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 30px;">
+                <button type="button" class="btn btn-primary" onclick="goToAbsen()" id="btnAbsenMasuk">
+                    Absensi Masuk
+                </button>
+                <button type="button" class="btn btn-primary" onclick="goToPulang()" id="btnPulang">
+                    Absensi Pulang
+                </button>
+            </div>
+            
+            <!-- History Section -->
+            <div style="margin-top: 30px;">
+                <h3 style="margin-bottom: 15px; color: #333;">Riwayat Absensi</h3>
+                
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Status Masuk</th>
+                                <th>Jam Masuk</th>
+                                <th>Status Pulang</th>
+                                <th>Jam Pulang</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #666;">Belum ada data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Download Button -->
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" class="btn btn-success" onclick="downloadFile()">
+                    📥 Download Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/2.8.0/xlsx.full.min.js"></script>
+    <script>
+        const session = checkStudentLogin();
+        const siswa = DB.getSiswaById(session.user_id);
+        
+        // Display student info
+        function displayStudentInfo() {
+            document.getElementById('studentName').textContent = siswa.nama;
+            document.getElementById('studentClass').textContent = siswa.kelas;
+        }
+        
+        // Display today's attendance
+        function displayToday() {
+            const todayAbsensi = DB.getTodayAbsensi(session.user_id);
+            const todayPulang = DB.getTodayPulang(session.user_id);
+            
+            // Status Masuk
+            if (todayAbsensi) {
+                document.getElementById('statusMasuk').textContent = todayAbsensi.status;
+                document.getElementById('jamMasuk').textContent = formatTime(todayAbsensi.jam_masuk);
+                document.getElementById('statusWaktu').textContent = todayAbsensi.status_waktu || '-';
+            } else {
+                document.getElementById('statusMasuk').textContent = 'Belum Absensi';
+                document.getElementById('jamMasuk').textContent = '-';
+                document.getElementById('statusWaktu').textContent = '-';
+            }
+            
+            // Status Pulang
+            if (todayPulang) {
+                document.getElementById('statusPulang').textContent = todayPulang.status_pulang;
+                document.getElementById('jamPulang').textContent = formatTime(todayPulang.jam_keluar);
+            } else {
+                document.getElementById('statusPulang').textContent = 'Belum Pulang';
+                document.getElementById('jamPulang').textContent = '-';
+            }
+            
+            // Update button states
+            const btnAbsenMasuk = document.getElementById('btnAbsenMasuk');
+            const btnPulang = document.getElementById('btnPulang');
+            
+            if (todayAbsensi) {
+                btnAbsenMasuk.disabled = true;
+                btnAbsenMasuk.textContent = '✓ Sudah Absensi Masuk';
+                btnAbsenMasuk.className = 'btn btn-secondary';
+            }
+            
+            if (todayPulang) {
+                btnPulang.disabled = true;
+                btnPulang.textContent = '✓ Sudah Absensi Pulang';
+                btnPulang.className = 'btn btn-secondary';
+            } else if (!todayAbsensi) {
+                btnPulang.disabled = true;
+                btnPulang.textContent = 'Absensi Masuk dulu';
+                btnPulang.className = 'btn btn-secondary';
+            }
+        }
+        
+        // Display history
+        function displayHistory() {
+            const allAbsensi = DB.getAllAbsensi(session.user_id);
+            const tableBody = document.getElementById('tableBody');
+            
+            if (allAbsensi.masuk.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">Belum ada data</td></tr>';
+                return;
+            }
+            
+            // Combine and sort data
+            const allData = allAbsensi.masuk.map(masuk => {
+                const pulang = allAbsensi.keluar.find(p => p.tanggal === masuk.tanggal);
+                return {
+                    tanggal: masuk.tanggal,
+                    status_masuk: masuk.status,
+                    jam_masuk: masuk.jam_masuk,
+                    status_pulang: pulang?.status_pulang || '-',
+                    jam_pulang: pulang?.jam_keluar || '-'
+                };
+            }).sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            
+            tableBody.innerHTML = allData.map(row => `
+                <tr>
+                    <td>${formatDate(row.tanggal)}</td>
+                    <td><span class="badge badge-primary">${row.status_masuk}</span></td>
+                    <td>${formatTime(row.jam_masuk)}</td>
+                    <td>${row.status_pulang === '-' ? '-' : `<span class="badge badge-success">${row.status_pulang}</span>`}</td>
+                    <td>${formatTime(row.jam_pulang)}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Download CSV
+        function downloadFile() {
+            const allAbsensi = DB.getAllAbsensi(session.user_id);
+            
+            if (allAbsensi.masuk.length === 0) {
+                alert('Tidak ada data untuk diunduh');
+                return;
+            }
+            
+            const data = allAbsensi.masuk.map(masuk => {
+                const pulang = allAbsensi.keluar.find(p => p.tanggal === masuk.tanggal);
+                return {
+                    'Tanggal': formatDate(masuk.tanggal),
+                    'Nama Siswa': siswa.nama,
+                    'Kelas': siswa.kelas,
+                    'Status Masuk': masuk.status,
+                    'Jam Masuk': formatTime(masuk.jam_masuk),
+                    'Status Waktu': masuk.status_waktu || '-',
+                    'Keterangan': masuk.keterangan || '-',
+                    'Status Pulang': pulang?.status_pulang || '-',
+                    'Jam Pulang': pulang?.jam_keluar || '-'
+                };
+            });
+            
+            exportToCSV(data, `Absensi_${siswa.nama}_${new Date().toISOString().split('T')[0]}.csv`);
+        }
+        
+        // Navigation
+        function goToAbsen() {
+            redirectTo('absen-user.html');
+        }
+        
+        function goToPulang() {
+            redirectTo('pulang.html');
+        }
+        
+        // Initialize
+        displayStudentInfo();
+        displayToday();
+        displayHistory();
+    </script>
+</body>
+</html>

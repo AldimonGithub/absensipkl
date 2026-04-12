@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Cepat - Sistem Absensi QR Code</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        p, li {
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        ul {
+            margin-left: 25px;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #0c5460;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #856404;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #155724;
+        }
+        
+        .table-structure {
+            margin: 15px 0;
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+        
+        .table-structure th,
+        .table-structure td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .table-structure th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #999;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Panduan Cepat Sistem Absensi QR Code</h1>
+        
+        <!-- Quick Start -->
+        <div class="section">
+            <h2>🚀 Quick Start (5 Menit)</h2>
+            
+            <h3>1. Persiapan Database</h3>
+            <p>Import file <code>config/schema.sql</code> ke MySQL:</p>
+            <div class="code-block">
+mysql -u root -p absensi_qrcode < config/schema.sql
+            </div>
+            
+            <h3>2. Konfigurasi Database</h3>
+            <p>Edit <code>config/database.php</code>:</p>
+            <div class="code-block">
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'absensi_qrcode');
+            </div>
+            
+            <h3>3. Setup Folder Permission</h3>
+            <div class="code-block">
+chmod 755 uploads/
+            </div>
+            
+            <h3>4. Akses Aplikasi</h3>
+            <p>Buka di browser: <a href="http://localhost/Absensi/" class="btn">http://localhost/Absensi/</a></p>
+            
+            <div class="alert alert-success">
+                ✓ Aplikasi sudah siap digunakan!
+            </div>
+        </div>
+        
+        <!-- Akun Default -->
+        <div class="section">
+            <h2>👤 Akun Default untuk Testing</h2>
+            
+            <h3>Login Siswa</h3>
+            <table class="table-structure">
+                <tr>
+                    <th>Nomor HP</th>
+                    <th>Password</th>
+                    <th>Nama</th>
+                    <th>Kelas</th>
+                </tr>
+                <tr>
+                    <td>08123456789</td>
+                    <td>admin</td>
+                    <td>Budi Santoso</td>
+                    <td>10-A</td>
+                </tr>
+                <tr>
+                    <td>08987654321</td>
+                    <td>admin</td>
+                    <td>Siti Nurhaliza</td>
+                    <td>10-B</td>
+                </tr>
+            </table>
+            
+            <h3>Login Admin</h3>
+            <table class="table-structure">
+                <tr>
+                    <th>Username</th>
+                    <th>Password</th>
+                </tr>
+                <tr>
+                    <td>admin</td>
+                    <td>admin</td>
+                </tr>
+            </table>
+            
+            <h3>QR Code untuk Testing</h3>
+            <table class="table-structure">
+                <tr>
+                    <th>Siswa</th>
+                    <th>QR Code</th>
+                </tr>
+                <tr>
+                    <td>Budi Santoso</td>
+                    <td>SISWA-001-QRCODE</td>
+                </tr>
+                <tr>
+                    <td>Siti Nurhaliza</td>
+                    <td>SISWA-002-QRCODE</td>
+                </tr>
+            </table>
+            
+            <div class="alert alert-warning">
+                ⚠️ Ubah password default sebelum production!
+            </div>
+        </div>
+        
+        <!-- Struktur Folder -->
+        <div class="section">
+            <h2>📁 Struktur Folder</h2>
+            <div class="code-block">
+Absensi/
+├── config/
+│   ├── database.php          ← Konfigurasi database
+│   └── schema.sql            ← Database schema
+├── includes/
+│   ├── auth.php              ← Authentication
+│   └── functions.php         ← Utility functions
+├── pages/
+│   ├── login-admin.php       ← Login admin
+│   ├── verif-user.php        ← Verifikasi (CAPTCHA & QR)
+│   ├── absen-user.php        ← Absensi masuk
+│   ├── backhome-absen-user.php ← Absensi pulang
+│   ├── success-absen.php     ← Konfirmasi masuk
+│   ├── success-pulang.php    ← Konfirmasi pulang
+│   ├── admin-interface.php   ← Dashboard admin
+│   └── download-absen.php    ← Info sudah absen
+├── assets/
+│   ├── css/
+│   │   ├── style.css         ← Main styles
+│   │   └── admin.css         ← Admin styles
+│   └── js/
+│       ├── qr-scanner.js     ← QR scanner
+│       ├── absen.js          ← Absensi form
+│       └── pulang.js         ← Pulang form
+├── uploads/                  ← Bukti file
+├── index.php                 ← Login siswa
+├── .htaccess                 ← Server config
+├── qr-generator.php          ← QR generator utility
+├── README.md                 ← Dokumentasi lengkap
+├── API_DOCUMENTATION.md      ← API docs
+├── SETUP_GUIDE.md           ← Setup & troubleshooting
+└── QUICK_START.html         ← File ini
+            </div>
+        </div>
+        
+        <!-- Alur Penggunaan -->
+        <div class="section">
+            <h2>🔄 Alur Penggunaan Sistem</h2>
+            
+            <h3>Untuk Siswa:</h3>
+            <ol>
+                <li>
+                    <strong>Login</strong> → Masukkan Nomor HP & Password
+                    <div style="margin-left: 20px; margin-top: 5px; color: #888; font-size: 13px;">
+                        URL: <code>http://localhost/Absensi/</code>
+                    </div>
+                </li>
+                <li>
+                    <strong>Verifikasi CAPTCHA</strong> → Masukkan kode CAPTCHA
+                    <div style="margin-left: 20px; margin-top: 5px; color: #888; font-size: 13px;">
+                        URL: <code>/pages/verif-user.php</code>
+                    </div>
+                </li>
+                <li>
+                    <strong>Scan QR Code</strong> → Arahkan kamera ke QR
+                    <div style="margin-left: 20px; margin-top: 5px; color: #888; font-size: 13px;">
+                        Gunakan QR: SISWA-001-QRCODE atau SISWA-002-QRCODE
+                    </div>
+                </li>
+                <li>
+                    <strong>Absensi Masuk</strong> → Pilih status & isi keterangan (jika perlu)
+                    <div style="margin-left: 20px; margin-top: 5px; color: #888; font-size: 13px;">
+                        Status: Hadir (hijau), Sakit (merah), Izin (kuning), Absen (merah)
+                    </div>
+                </li>
+                <li>
+                    <strong>Absensi Pulang</strong> → Setelah pukul 12:00, konfirmasi keluar
+                    <div style="margin-left: 20px; margin-top: 5px; color: #888; font-size: 13px;">
+                        Status: Pulang Cepat, Tepat Waktu, Lembur
+                    </div>
+                </li>
+            </ol>
+            
+            <h3>Untuk Admin:</h3>
+            <ol>
+                <li>
+                    <strong>Login Admin</strong> → Masukkan Username & Password
+                    <div style="margin-left: 20px; margin-top: 5px; color: #888; font-size: 13px;">
+                        URL: <code>/pages/login-admin.php</code>
+                    </div>
+                </li>
+                <li>
+                    <strong>Dashboard</strong> → Lihat semua data absensi
+                    <div style="margin-left: 20px; margin-top: 5px; color: #888; font-size: 13px;">
+                        URL: <code>/pages/admin-interface.php</code>
+                    </div>
+                </li>
+                <li>
+                    <strong>Filter & Cari</strong> → Gunakan filter untuk menemukan data spesifik
+                </li>
+            </ol>
+        </div>
+        
+        <!-- Catatan Penting -->
+        <div class="section">
+            <h2>⚡ Catatan Penting</h2>
+            
+            <h3>Waktu Operasional:</h3>
+            <ul>
+                <li><strong>Absensi Masuk:</strong> Mulai pukul 06:00</li>
+                <li><strong>Batas Tepat Waktu:</strong> 08:00</li>
+                <li><strong>Batas Toleransi:</strong> 08:30</li>
+                <li><strong>Absensi Pulang:</strong> Mulai pukul 12:00</li>
+            </ul>
+            
+            <h3>Fitur QR Code:</h3>
+            <ul>
+                <li>Browser harus support WebRTC (Chrome, Firefox, Safari, Edge)</li>
+                <li>Izinkan akses kamera di browser settings</li>
+                <li>Gunakan HTTPS atau localhost</li>
+            </ul>
+            
+            <h3>Upload Bukti File:</h3>
+            <ul>
+                <li>Format: JPG, JPEG, PNG, MP4, AVI</li>
+                <li>Maksimal: 10MB</li>
+                <li>Hanya untuk status Sakit/Izin/Absen</li>
+            </ul>
+            
+            <h3>Password & Security:</h3>
+            <ul>
+                <li>Semua password di-hash dengan bcrypt</li>
+                <li>Jangan bagikan password default</li>
+                <li>Change password secara berkala</li>
+            </ul>
+        </div>
+        
+        <!-- Perintah Berguna -->
+        <div class="section">
+            <h2>💾 Perintah Berguna</h2>
+            
+            <h3>Backup Database:</h3>
+            <div class="code-block">
+mysqldump -u root -p absensi_qrcode > backup_$(date +%Y%m%d).sql
+            </div>
+            
+            <h3>Restore Database:</h3>
+            <div class="code-block">
+mysql -u root -p absensi_qrcode < backup_20260412.sql
+            </div>
+            
+            <h3>Reset Password Siswa:</h3>
+            <div class="code-block">
+UPDATE siswa SET password = '$2y$10$YOUR_HASHED_PASSWORD' WHERE nomor_hp = '08123456789';
+            </div>
+            
+            <h3>Generate Password Hash:</h3>
+            <div class="code-block">
+php -r "echo password_hash('password123', PASSWORD_BCRYPT);"
+            </div>
+            
+            <h3>Clear Upload Files (30+ hari):</h3>
+            <div class="code-block">
+find uploads/ -type f -mtime +30 -delete
+            </div>
+        </div>
+        
+        <!-- Links -->
+        <div class="section">
+            <h2>📖 Dokumentasi Lengkap</h2>
+            <ul>
+                <li><a href="README.md" class="btn">📖 README.md - Dokumentasi Lengkap</a></li>
+                <li><a href="API_DOCUMENTATION.md" class="btn">🔌 API_DOCUMENTATION.md - API Reference</a></li>
+                <li><a href="SETUP_GUIDE.md" class="btn">🔧 SETUP_GUIDE.md - Setup & Troubleshooting</a></li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>Sistem Absensi QR Code | Versi 1.0 | April 2026</p>
+            <p>Untuk bantuan lebih lanjut, hubungi Tim IT</p>
+        </footer>
+    </div>
+</body>
+</html>

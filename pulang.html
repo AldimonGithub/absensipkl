@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Pulang - Sistem Absensi</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <div class="absen-box">
+            <div class="absen-header">
+                <h1>Absensi Pulang (Sore)</h1>
+                <p id="tanggal"></p>
+            </div>
+            
+            <div id="alertContainer"></div>
+            
+            <!-- Time Display -->
+            <div class="time-display">
+                <div class="time" id="timeDisplay">12:00:00</div>
+                <div class="status" id="timeStatus">Menunggu jam 12:00...</div>
+            </div>
+            
+            <!-- Student Info -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                    <div>
+                        <p style="color: #666; margin-bottom: 3px;">Nama</p>
+                        <p style="font-weight: 600;" id="studentName">-</p>
+                    </div>
+                    <div>
+                        <p style="color: #666; margin-bottom: 3px;">Kelas</p>
+                        <p style="font-weight: 600;" id="studentClass">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Morning Attendance Status -->
+            <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Status Masuk Hari Ini</p>
+                <div style="font-weight: 600; color: #004085;" id="statusMasuk">-</div>
+            </div>
+            
+            <!-- Pulang Form -->
+            <form id="pulangForm" class="absen-form">
+                <!-- Jam Login Terakhir -->
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                    <p style="font-size: 12px; color: #856404; margin-bottom: 5px;"><strong>Jam Login Terakhir:</strong></p>
+                    <div style="font-weight: 600; color: #856404; font-size: 16px;" id="jamMasuk">-</div>
+                </div>
+                
+                <!-- Auto Status Detection -->
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #0066cc;">
+                    <p style="font-size: 12px; color: #004085; margin-bottom: 5px;"><strong>Status Pulang (Auto-Detected):</strong></p>
+                    <div style="font-weight: 600; color: #0066cc; font-size: 16px;" id="statusPulangDisplay">
+                        <span style="color: #999;">Menghitung...</span>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary" id="submitBtn" disabled style="width: 100%;">
+                    📤 Kirim Absensi Pulang
+                </button>
+            </form>
+            
+            <!-- Back Button -->
+            <button type="button" class="btn btn-secondary" onclick="goBack()" style="width: 100%; margin-top: 10px;">
+                Kembali ke Dashboard
+            </button>
+            
+            <!-- Logout -->
+            <button type="button" class="btn btn-secondary" onclick="logout()" style="width: 100%; margin-top: 10px;">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Pulang -->
+    <div id="modalKonfirmasi" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; margin: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <h2 style="margin-bottom: 20px; color: #333;">Konfirmasi Absensi Pulang</h2>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: left;">
+                <div style="margin-bottom: 15px;">
+                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;"><strong>Jam Login:</strong></p>
+                    <p style="font-size: 16px; font-weight: 600; color: #333;" id="modalJamMasuk">-</p>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;"><strong>Jam Pulang:</strong></p>
+                    <p style="font-size: 16px; font-weight: 600; color: #333;" id="modalJamKeluar">-</p>
+                </div>
+                
+                <div style="padding-top: 15px; border-top: 1px solid #ddd;">
+                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;"><strong>Status Pulang:</strong></p>
+                    <p style="font-size: 16px; font-weight: 600;" id="modalStatusDisplay">-</p>
+                </div>
+                
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;"><strong>Keterangan:</strong></p>
+                    <p style="font-size: 13px; color: #333;" id="modalKeterangan">-</p>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button type="button" class="btn btn-primary" onclick="confirmPulang()" style="width: 100%;">
+                    ✓ Konfirmasi
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closePulangModal()" style="width: 100%;">
+                    ✕ Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script>
+        const session = checkStudentLogin();
+        const siswa = DB.getSiswaById(session.user_id);
+        let currentStatusPulang = null;
+        let currentKeterangan = null;
+        
+        // Check morning attendance
+        const todayAbsensi = DB.getTodayAbsensi(session.user_id);
+        if (!todayAbsensi) {
+            showAlert('Anda belum melakukan absensi masuk!', 'error');
+            setTimeout(() => {
+                redirectTo('absen-user.html');
+            }, 2000);
+        }
+        
+        // Check if already left
+        const todayPulang = DB.getTodayPulang(session.user_id);
+        if (todayPulang) {
+            redirectTo('download-absen.html');
+        }
+        
+        // Display student info
+        function displayStudentInfo() {
+            document.getElementById('studentName').textContent = siswa.nama;
+            document.getElementById('studentClass').textContent = siswa.kelas;
+            
+            // Display today's date
+            const today = new Date();
+            document.getElementById('tanggal').textContent = today.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Display morning attendance
+            if (todayAbsensi) {
+                const statusText = todayAbsensi.status;
+                const statusBadge = document.createElement('span');
+                statusBadge.className = 'badge badge-primary';
+                statusBadge.textContent = statusText;
+                document.getElementById('statusMasuk').innerHTML = '';
+                document.getElementById('statusMasuk').appendChild(statusBadge);
+                
+                if (todayAbsensi.status_waktu) {
+                    document.getElementById('statusMasuk').innerHTML += 
+                        ` <span style="margin-left: 10px; font-size: 12px; color: #666;">${todayAbsensi.status_waktu}</span>`;
+                }
+                
+                // Display jam masuk
+                document.getElementById('jamMasuk').textContent = todayAbsensi.jam_masuk;
+            }
+        }
+        
+        // Detect status pulang berdasarkan jam
+        function detectStatusPulang() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            
+            let status = '';
+            let keterangan = '';
+            
+            if (hours >= 12 && hours <= 15 || (hours === 15 && minutes <= 40)) {
+                // 12:00 - 15:40
+                status = 'Pulang Cepat';
+                keterangan = 'Anda pulang lebih awal dari waktu standar.';
+            } else if ((hours === 15 && minutes > 40) || (hours === 16 && minutes <= 10)) {
+                // 15:41 - 16:10
+                status = 'Tepat Waktu';
+                keterangan = 'Anda pulang sesuai dengan jam standar.';
+            } else if (hours >= 16 && hours <= 22 || (hours === 22 && minutes === 0)) {
+                // 16:11 - 22:00
+                status = 'Lembur';
+                keterangan = 'Anda melakukan kerja lembur.';
+            } else if (hours > 22 || hours < 12) {
+                status = 'Di luar jam operasional';
+                keterangan = 'Absensi pulang hanya tersedia antara 12:00 - 22:00.';
+            }
+            
+            return { status, keterangan };
+        }
+        
+        // Display status pulang
+        function updateStatusDisplay() {
+            const detection = detectStatusPulang();
+            const statusElement = document.getElementById('statusPulangDisplay');
+            
+            if (detection.status) {
+                statusElement.innerHTML = `<span style="color: #0066cc;">${detection.status}</span>`;
+            } else {
+                statusElement.innerHTML = `<span style="color: #999;">Sistem menghitung status...</span>`;
+            }
+        }
+        
+        // Update time display and check if can leave
+        function updateTimeStatus() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+            
+            // Check if can leave (12:00 PM or later and before 22:00)
+            if (now.getHours() >= 12 && now.getHours() < 22) {
+                document.getElementById('timeStatus').textContent = '✓ Siap untuk absensi pulang';
+                document.getElementById('submitBtn').disabled = false;
+            } else if (now.getHours() === 22) {
+                document.getElementById('timeStatus').textContent = '✓ Siap untuk absensi pulang';
+                document.getElementById('submitBtn').disabled = false;
+            } else {
+                const hoursUntil = 12 - now.getHours();
+                document.getElementById('timeStatus').textContent = `Terbuka dalam ${hoursUntil} jam`;
+                document.getElementById('submitBtn').disabled = true;
+            }
+            
+            updateStatusDisplay();
+        }
+        
+        // Start time updates
+        updateTimeStatus();
+        startClockUpdate();
+        setInterval(updateTimeStatus, 1000);
+        
+        // Form submission - Open confirmation modal
+        document.getElementById('pulangForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const now = new Date();
+            if (now.getHours() < 12) {
+                showAlert('Anda hanya bisa melakukan absensi pulang mulai pukul 12:00!', 'error');
+                return;
+            }
+            
+            // Detect status dan keterangan
+            const detection = detectStatusPulang();
+            currentStatusPulang = detection.status;
+            currentKeterangan = detection.keterangan;
+            
+            // Fill modal
+            document.getElementById('modalJamMasuk').textContent = todayAbsensi.jam_masuk;
+            
+            const jamNow = String(now.getHours()).padStart(2, '0') + ':' + 
+                          String(now.getMinutes()).padStart(2, '0') + ':' +
+                          String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('modalJamKeluar').textContent = jamNow;
+            
+            const statusBadge = document.createElement('span');
+            statusBadge.style.background = '#0066cc';
+            statusBadge.style.color = 'white';
+            statusBadge.style.padding = '5px 10px';
+            statusBadge.style.borderRadius = '4px';
+            statusBadge.style.display = 'inline-block';
+            statusBadge.textContent = detection.status;
+            
+            document.getElementById('modalStatusDisplay').innerHTML = '';
+            document.getElementById('modalStatusDisplay').appendChild(statusBadge);
+            
+            document.getElementById('modalKeterangan').textContent = detection.keterangan;
+            
+            // Open modal
+            document.getElementById('modalKonfirmasi').style.display = 'flex';
+        });
+        
+        // Confirm pulang
+        function confirmPulang() {
+            const now = new Date();
+            const jamKeluar = String(now.getHours()).padStart(2, '0') + ':' + 
+                            String(now.getMinutes()).padStart(2, '0') + ':' +
+                            String(now.getSeconds()).padStart(2, '0');
+            
+            const pulangData = {
+                siswa_id: session.user_id,
+                jam_keluar: jamKeluar,
+                status_pulang: currentStatusPulang
+            };
+            
+            DB.saveAbsensiKeluar(pulangData);
+            showAlert('✓ Absensi pulang berhasil disimpan!', 'success');
+            
+            setTimeout(() => {
+                redirectTo('download-absen.html');
+            }, 1500);
+        }
+        
+        // Close modal
+        function closePulangModal() {
+            document.getElementById('modalKonfirmasi').style.display = 'none';
+        }
+        
+        // Show Alert
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `<span style="white-space: pre-wrap;">${message}</span>`;
+            
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+        }
+        
+        function goBack() {
+            redirectTo('download-absen.html');
+        }
+        
+        // Initialize
+        displayStudentInfo();
+    </script>
+</body>
+</html>

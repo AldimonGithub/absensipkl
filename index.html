@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi QR Code - Login</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .login-page {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .login-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+        
+        .login-background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+        
+        .login-header-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .logo-left {
+            max-width: 80px;
+            max-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .clock-date {
+            text-align: right;
+            color: white;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .clock-date .time {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .login-content {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .login-box-custom {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            margin-top: 60px;
+        }
+        
+        .login-box-custom .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-box-custom h1 {
+            color: #333;
+            margin: 0;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .login-box-custom p {
+            color: #666;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .tab-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .alert-custom {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        @media (max-width: 600px) {
+            .login-box-custom {
+                padding: 25px;
+                margin-top: 100px;
+            }
+            
+            .login-box-custom h1 {
+                font-size: 22px;
+            }
+            
+            .logo-left, .logo-right {
+                max-width: 50px;
+                max-height: 50px;
+                font-size: 12px;
+            }
+            
+            .login-header-top {
+                height: 70px;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <!-- Background -->
+        <div class="login-background" id="loginBackground"></div>
+        
+        <!-- Top Header with Logo and Clock -->
+        <div class="login-header-top">
+            <div class="logo-left" id="logoLeft">
+                <!-- Logo will be loaded from localStorage -->
+            </div>
+            
+            <div class="clock-date">
+                <div class="time" id="clockTime">00:00:00</div>
+                <div id="clockDate">Monday, 01 Jan 2024</div>
+            </div>
+        </div>
+        
+        <!-- Login Content -->
+        <div class="login-content">
+            <div class="login-box-custom">
+                <div class="login-header">
+                    <h1>Sistem Absensi</h1>
+                    <p>Masukkan kredensial Anda untuk melanjutkan</p>
+                </div>
+                
+                <div id="alertContainer"></div>
+                
+                <!-- Tab Navigation -->
+                <div class="tab-buttons">
+                    <button type="button" class="tab-btn active" id="tabSiswa" onclick="switchTab('siswa')">
+                        👤 Login Siswa
+                    </button>
+                    <button type="button" class="tab-btn" id="tabAdmin" onclick="switchTab('admin')">
+                        🔐 Login Admin
+                    </button>
+                </div>
+                
+                <!-- Student Login Form -->
+                <form id="formSiswa">
+                    <div class="form-group">
+                        <label for="nomor_hp">Nomor HP</label>
+                        <input type="text" id="nomor_hp" placeholder="08123456789" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Masukkan password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-login">Login Siswa</button>
+                </form>
+                
+                <!-- Admin Login Form -->
+                <form id="formAdmin" style="display: none;">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="admin" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="passwordAdmin">Password</label>
+                        <input type="password" id="passwordAdmin" placeholder="Masukkan password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-login">Login Admin</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script>
+        // Clear existing session on login page
+        DB.clearSession();
+        
+        // Load styling from localStorage
+        function loadLoginPageStyling() {
+            const customBackground = localStorage.getItem('login_background_image');
+            if (customBackground) {
+                document.getElementById('loginBackground').style.backgroundImage = `url('${customBackground}')`;
+            }
+            
+            const logoLeftImage = localStorage.getItem('login_logo_left_image');
+            const logoLeftContainer = document.getElementById('logoLeft');
+            
+            if (logoLeftImage) {
+                // Load logo left image
+                logoLeftContainer.innerHTML = '';
+                const logoImg = document.createElement('img');
+                logoImg.src = logoLeftImage;
+                logoImg.style.maxWidth = '100%';
+                logoImg.style.maxHeight = '100%';
+                logoImg.style.objectFit = 'contain';
+                logoLeftContainer.appendChild(logoImg);
+            }
+        }
+        
+        // Update clock and date
+        function updateClockAndDate() {
+            const now = new Date();
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clockTime').textContent = `${hours}:${minutes}:${seconds}`;
+            
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString('id-ID', options);
+            document.getElementById('clockDate').textContent = dateStr;
+        }
+        
+        // Switch Tab
+        function switchTab(tab) {
+            const formSiswa = document.getElementById('formSiswa');
+            const formAdmin = document.getElementById('formAdmin');
+            const tabSiswa = document.getElementById('tabSiswa');
+            const tabAdmin = document.getElementById('tabAdmin');
+            
+            if (tab === 'siswa') {
+                formSiswa.style.display = 'block';
+                formAdmin.style.display = 'none';
+                tabSiswa.classList.add('active');
+                tabAdmin.classList.remove('active');
+            } else {
+                formSiswa.style.display = 'none';
+                formAdmin.style.display = 'block';
+                tabSiswa.classList.remove('active');
+                tabAdmin.classList.add('active');
+            }
+        }
+        
+        // Student Login Handler
+        document.getElementById('formSiswa').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nomor_hp = document.getElementById('nomor_hp').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!nomor_hp || !password) {
+                showAlert('Nomor HP dan Password harus diisi!', 'error');
+                return;
+            }
+            
+            const siswa = DB.loginSiswa(nomor_hp, password);
+            if (siswa) {
+                DB.setSession({
+                    type: 'siswa',
+                    id: siswa.id,
+                    nama: siswa.nama
+                });
+                // Redirect to QR verification after login
+                showAlert('✓ Login berhasil! Melakukan verifikasi QR...', 'success');
+                setTimeout(() => {
+                    redirectTo('qr-verification.html');
+                }, 1000);
+            } else {
+                showAlert('Nomor HP atau Password salah!', 'error');
+            }
+        });
+        
+        // Admin Login Handler
+        document.getElementById('formAdmin').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('passwordAdmin').value;
+            
+            if (!username || !password) {
+                showAlert('Username dan Password harus diisi!', 'error');
+                return;
+            }
+            
+            const admin = DB.loginAdmin(username, password);
+            if (admin) {
+                DB.setSession({
+                    type: 'admin',
+                    id: admin.id,
+                    nama: admin.nama
+                });
+                // Admin goes directly to admin panel (no QR verification)
+                showAlert('✓ Login admin berhasil!', 'success');
+                setTimeout(() => {
+                    redirectTo('admin.html');
+                }, 1000);
+            } else {
+                showAlert('Username atau Password salah!', 'error');
+            }
+        });
+        
+        // Show Alert
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert-custom alert-${type}`;
+            alertDiv.innerHTML = `<span>${message}</span>`;
+            
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 3000);
+            }
+        }
+        
+        // Check if already logged in
+        const session = localStorage.getItem('session');
+        if (session) {
+            const sessionData = JSON.parse(session);
+            if (sessionData.type === 'siswa') {
+                // Redirect to absen-user if already logged in
+                redirectTo('absen-user.html');
+            } else if (sessionData.type === 'admin') {
+                // Redirect to admin if already logged in
+                redirectTo('admin.html');
+            }
+        }
+        
+        // Initialize
+        loadLoginPageStyling();
+        updateClockAndDate();
+        setInterval(updateClockAndDate, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+/* Admin Interface Styles */
+
+.admin-container {
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-header h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-actions span {
+    font-size: 14px;
+}
+
+/* Content */
+.admin-content {
+    max-width: 1400px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* Filter Section */
+.filter-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section h2 {
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.filter-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-form label {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.filter-form input,
+.filter-form select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.filter-form input:focus,
+.filter-form select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-form button,
+.filter-form a {
+    align-self: flex-end;
+}
+
+/* Data Section */
+.data-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.data-section h2 {
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+/* Table */
+.table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.data-table thead {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.data-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+    color: #666;
+}
+
+.data-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Badge Styles in Table */
+.badge-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-status.hadir {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-status.sakit,
+.badge-status.absen {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-status.izin {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-waktu {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-waktu.tepat-waktu {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-waktu.toleransi {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-waktu.terlambat {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-pulang {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-pulang.pulang-cepat {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+.badge-pulang.tepat-waktu {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-pulang.lembur {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+.pagination .btn {
+    padding: 10px 15px;
+    font-size: 13px;
+}
+
+.pagination-info {
+    color: #666;
+    font-size: 13px;
+}
+
+/* Alerts in Admin */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border-left: 4px solid;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border-left-color: #0c5460;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border-left-color: #721c24;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border-left-color: #155724;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .admin-header h1 {
+        font-size: 20px;
+    }
+    
+    .admin-actions {
+        justify-content: center;
+    }
+    
+    .filter-form {
+        grid-template-columns: 1fr;
+    }
+    
+    .data-table {
+        font-size: 12px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-content {
+        margin: 15px auto;
+    }
+    
+    .filter-section,
+    .data-section {
+        padding: 15px;
+    }
+    
+    .table-wrapper {
+        margin: -15px -15px 20px -15px;
+    }
+    
+    .data-table {
+        font-size: 11px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 8px;
+    }
+    
+    .badge-status,
+    .badge-waktu,
+    .badge-pulang {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+}

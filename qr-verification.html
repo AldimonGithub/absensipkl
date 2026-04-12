@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi QR Code - Sistem Absensi</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <div class="verif-box">
+            <div class="verif-header">
+                <h1>Verifikasi Akses Sistem</h1>
+                <p>Scan QR Verification untuk melanjutkan ke Login</p>
+            </div>
+            
+            <div id="alertContainer"></div>
+            
+            <!-- QR Scanner Modal -->
+            <div class="form-group">
+                <label>Scan QR Code dengan Kamera</label>
+                <div class="qr-scanner-container" style="background: #000; border-radius: 8px; overflow: hidden; height: 300px;">
+                    <video id="qrVideo" style="width: 100%; height: 100%; object-fit: cover;" muted autoplay playsinline></video>
+                </div>
+                <p style="text-align: center; color: #666; font-size: 12px;">Letakkan QR Code di depan kamera</p>
+            </div>
+            
+            <!-- File Import QR Code -->
+            <div class="form-group">
+                <label>atau Import File QR Code</label>
+                <input type="file" id="qrFileInput" name="qrFile" accept="image/*" style="display: none;">
+                <label for="qrFileInput" class="file-input-label">
+                    📤 Pilih File Gambar QR Code
+                </label>
+                <div class="file-name" id="fileName"></div>
+            </div>
+            
+            <!-- Hidden input untuk detected QR -->
+            <input type="hidden" id="detectedQR">
+            
+            <!-- Verify Button -->
+            <form id="verifForm" class="login-form">
+                <button type="submit" class="btn btn-primary">Verifikasi & Lanjut ke Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+        // Get global QR
+        const globalQR = DB.getGlobalQR();
+        if (!globalQR) {
+            alert('System belum dikonfigurasi. Hubungi admin.');
+            redirectTo('admin.html');
+        }
+        
+        let cameraStream = null;
+        
+        // Improve image for QR detection
+        function improveImageForQR(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i];
+                let g = data[i + 1];
+                let b = data[i + 2];
+                
+                const gray = r * 0.299 + g * 0.587 + b * 0.114;
+                const enhanced = gray > 128 ? 255 : 0;
+                
+                data[i] = enhanced;
+                data[i + 1] = enhanced;
+                data[i + 2] = enhanced;
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            return ctx.getImageData(0, 0, width, height);
+        }
+        
+        // Start QR Scanner
+        async function startQRScanner() {
+            try {
+                const video = document.getElementById('qrVideo');
+                const canvas = document.createElement('canvas');
+                const canvasContext = canvas.getContext('2d');
+                
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+                
+                video.srcObject = cameraStream;
+                video.setAttribute('playsinline', true);
+                video.play();
+                
+                function scanQR() {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        let imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+                        let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: 'dontInvert'
+                        });
+                        
+                        if (!code) {
+                            const improvedData = improveImageForQR(canvasContext, canvas.width, canvas.height);
+                            code = jsQR(improvedData.data, improvedData.width, improvedData.height, {
+                                inversionAttempts: 'attemptBoth'
+                            });
+                        }
+                        
+                        if (!code) {
+                            imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+                            code = jsQR(imageData.data, imageData.width, imageData.height, {
+                                inversionAttempts: 'invertFirst'
+                            });
+                        }
+                        
+                        if (code) {
+                            const detectedQR = code.data;
+                            document.getElementById('detectedQR').value = detectedQR;
+                            
+                            if (detectedQR === globalQR.qr_code) {
+                                showAlert('✓ QR Code VALID! Verifikasi berhasil...', 'success');
+                                stopQRScanner();
+                                setTimeout(() => {
+                                    redirectTo('absen-user.html');
+                                }, 1500);
+                            } else {
+                                console.log('QR tidak cocok');
+                                console.log('Expected:', globalQR.qr_code);
+                                console.log('Detected:', detectedQR);
+                            }
+                            return;
+                        }
+                    }
+                    requestAnimationFrame(scanQR);
+                }
+                
+                scanQR();
+            } catch (error) {
+                console.error('Camera error:', error);
+                showAlert('Tidak bisa mengakses kamera. Silahkan gunakan import file QR Code.', 'warning');
+            }
+        }
+        
+        // Stop QR Scanner
+        function stopQRScanner() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+        
+        // Handle QR File Upload
+        document.getElementById('qrFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                showAlert('Format file harus berupa gambar (JPG, PNG, etc)', 'error');
+                this.value = '';
+                document.getElementById('fileName').textContent = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: 'dontInvert'
+                    });
+                    
+                    if (!code) {
+                        const improvedData = improveImageForQR(ctx, canvas.width, canvas.height);
+                        code = jsQR(improvedData.data, improvedData.width, improvedData.height, {
+                            inversionAttempts: 'attemptBoth'
+                        });
+                    }
+                    
+                    if (!code) {
+                        imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: 'invertFirst'
+                        });
+                    }
+                    
+                    if (code) {
+                        const detectedQR = code.data;
+                        document.getElementById('detectedQR').value = detectedQR;
+                        
+                        if (detectedQR === globalQR.qr_code) {
+                            stopQRScanner();
+                            document.getElementById('fileName').textContent = `✓ QR VALID: ${detectedQR}`;
+                            document.getElementById('fileName').style.color = '#28a745';
+                            showAlert('✓ QR Code berhasil dibaca dan VALID! Klik tombol verifikasi untuk melanjutkan.', 'success');
+                        } else {
+                            document.getElementById('fileName').textContent = `⚠ QR tidak sesuai`;
+                            document.getElementById('fileName').style.color = '#ffc107';
+                            showAlert(`⚠ QR tidak sesuai.\nExpected: ${globalQR.qr_code}\nDetected: ${detectedQR}`, 'warning');
+                        }
+                    } else {
+                        showAlert('❌ Tidak bisa membaca QR Code dari file ini.', 'error');
+                        document.getElementById('fileName').textContent = '❌ QR Code tidak terdeteksi';
+                        document.getElementById('fileName').style.color = '#dc3545';
+                        this.value = '';
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            document.getElementById('fileName').textContent = '🔄 Membaca file...';
+            document.getElementById('fileName').style.color = '#ffc107';
+        });
+        
+        // Form submission
+        document.getElementById('verifForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const detectedQR = document.getElementById('detectedQR').value.trim();
+            
+            if (!detectedQR) {
+                showAlert('Silahkan scan atau import file QR Code terlebih dahulu!', 'error');
+                return;
+            }
+            
+            console.log('Expected:', globalQR.qr_code);
+            console.log('Detected:', detectedQR);
+            
+            if (detectedQR !== globalQR.qr_code) {
+                showAlert(`❌ QR Code TIDAK VALID!\n\nExpected: ${globalQR.qr_code}\n\nDetected: ${detectedQR}`, 'error');
+                return;
+            }
+            
+            stopQRScanner();
+            showAlert('✓ Verifikasi berhasil! Redirecting...', 'success');
+            
+            setTimeout(() => {
+                redirectTo('absen-user.html');
+            }, 1500);
+        });
+        
+        // Show Alert
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `<span style="white-space: pre-wrap;">${message}</span>`;
+            
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            startQRScanner();
+        });
+        
+        window.addEventListener('beforeunload', function() {
+            stopQRScanner();
+        });
+    </script>
+</body>
+</html>
