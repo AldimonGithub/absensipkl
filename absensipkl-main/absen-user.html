@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Masuk - Sistem Absensi</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <div class="absen-box">
+            <div class="absen-header">
+                <h1>Absensi Masuk (Pagi)</h1>
+                <p id="tanggal"></p>
+            </div>
+            
+            <div id="alertContainer"></div>
+            
+            <!-- Time Display -->
+            <div class="time-display">
+                <div class="time" id="timeDisplay">06:00:00</div>
+                <div class="status" id="timeStatus">Menunggu...</div>
+            </div>
+            
+            <!-- Student Info -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                    <div>
+                        <p style="color: #666; margin-bottom: 3px;">Nama</p>
+                        <p style="font-weight: 600;" id="studentName">-</p>
+                    </div>
+                    <div>
+                        <p style="color: #666; margin-bottom: 3px;">Kelas</p>
+                        <p style="font-weight: 600;" id="studentClass">-</p>
+                    </div>
+                    <div>
+                        <p style="color: #666; margin-bottom: 3px;">Bidang</p>
+                        <p style="font-weight: 600;" id="studentField">-</p>
+                    </div>
+                    <div>
+                        <p style="color: #666; margin-bottom: 3px;">No HP</p>
+                        <p style="font-weight: 600;" id="studentPhone">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attendance Form -->
+            <form id="absenForm" class="absen-form">
+                <div class="form-group">
+                    <label for="status">Pilih Status Kehadiran</label>
+                    <select id="status" name="status" required>
+                        <option value="">-- Pilih Status --</option>
+                        <option value="Hadir">Hadir</option>
+                        <option value="Sakit">Sakit</option>
+                        <option value="Izin">Izin</option>
+                        <option value="Absen">Absen</option>
+                    </select>
+                </div>
+                
+                <!-- Conditional fields for Sakit/Izin/Absen -->
+                <div id="reasonSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="keterangan">Keterangan</label>
+                        <textarea id="keterangan" name="keterangan" rows="3" placeholder="Jelaskan alasan Anda..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="buktiFile">Bukti (Foto/Video)</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="buktiFile" name="buktiFile" accept="image/*,video/*">
+                            <label for="buktiFile" class="file-input-label">
+                                📎 Pilih File (JPG, PNG, MP4, AVI - Max 10MB)
+                            </label>
+                            <div class="file-name" id="fileName"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Warning Message -->
+                <div id="warningMessage" style="display: none;" class="alert alert-warning">
+                    <span id="warningText"></span>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                    Kirim Absensi
+                </button>
+            </form>
+            
+            <!-- Logout -->
+            <button type="button" class="btn btn-secondary" onclick="logout()" style="width: 100%; margin-top: 10px;">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script>
+        const session = checkStudentLogin();
+        const siswa = DB.getSiswaById(session.user_id);
+        
+        // Check if already attended
+        const todayAbsensi = DB.getTodayAbsensi(session.user_id);
+        if (todayAbsensi) {
+            redirectTo('download-absen.html');
+        }
+        
+        // Display student info
+        function displayStudentInfo() {
+            document.getElementById('studentName').textContent = siswa.nama;
+            document.getElementById('studentClass').textContent = siswa.kelas;
+            document.getElementById('studentField').textContent = siswa.bidang || '-';
+            document.getElementById('studentPhone').textContent = siswa.nomor_hp;
+            
+            // Display today's date
+            const today = new Date();
+            document.getElementById('tanggal').textContent = today.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        // Update time display and check if can attend
+        function updateTimeStatus() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+            
+            // Check if can attend (6:00 AM or later)
+            if (now.getHours() < 6) {
+                document.getElementById('timeStatus').textContent = 'Belum bisa absensi (mulai jam 06:00)';
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('warningMessage').style.display = 'block';
+                document.getElementById('warningText').textContent = 'Anda hanya bisa melakukan absensi mulai pukul 06:00 pagi.';
+                
+                // Can't select Hadir before 6 AM
+                const statusSelect = document.getElementById('status');
+                const hadirOption = statusSelect.querySelector('option[value="Hadir"]');
+                hadirOption.disabled = true;
+                hadirOption.textContent = 'Hadir (Tersedia jam 06:00)';
+            } else {
+                document.getElementById('timeStatus').textContent = 'Siap untuk absensi';
+                document.getElementById('warningMessage').style.display = 'none';
+                
+                // Can select Hadir
+                const statusSelect = document.getElementById('status');
+                const hadirOption = statusSelect.querySelector('option[value="Hadir"]');
+                hadirOption.disabled = false;
+                hadirOption.textContent = 'Hadir';
+            }
+        }
+        
+        // Start time updates
+        updateTimeStatus();
+        startClockUpdate();
+        setInterval(updateTimeStatus, 1000);
+        
+        // Handle status change
+        document.getElementById('status').addEventListener('change', function() {
+            const status = this.value;
+            const reasonSection = document.getElementById('reasonSection');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (status === 'Sakit' || status === 'Izin' || status === 'Absen') {
+                reasonSection.style.display = 'block';
+            } else {
+                reasonSection.style.display = 'none';
+            }
+            
+            // Enable submit button if time is valid
+            if (canAttend() || status !== 'Hadir') {
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Handle file input
+        document.getElementById('buktiFile').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                const allowedTypes = ['image/jpeg', 'image/png', 'video/mp4', 'video/avi'];
+                
+                if (file.size > maxSize) {
+                    showAlert('Ukuran file terlalu besar (max 10MB)', 'error');
+                    this.value = '';
+                    return;
+                }
+                
+                if (!allowedTypes.includes(file.type)) {
+                    showAlert('Format file tidak diperbolehkan', 'error');
+                    this.value = '';
+                    return;
+                }
+                
+                document.getElementById('fileName').textContent = `✓ ${file.name}`;
+            } else {
+                document.getElementById('fileName').textContent = '';
+            }
+        });
+        
+        // Form submission
+        document.getElementById('absenForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const status = document.getElementById('status').value;
+            
+            if (!status) {
+                showAlert('Pilih status terlebih dahulu!', 'error');
+                return;
+            }
+            
+            // Check if trying to mark "Hadir" before 6:00 AM
+            if (status === 'Hadir' && !canAttend()) {
+                showAlert('Anda tidak bisa melakukan absensi sebelum pukul 06:00!', 'error');
+                return;
+            }
+            
+            const jamMasuk = getCurrentTime();
+            const statusWaktu = status === 'Hadir' ? getStatusWaktu(jamMasuk) : null;
+            const keterangan = document.getElementById('keterangan').value.trim();
+            
+            // Handle file upload (simulate)
+            const buktiFile = document.getElementById('buktiFile').files[0];
+            let buktiFileName = null;
+            
+            if (buktiFile) {
+                // Store file in localStorage as base64 (limited)
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    buktiFileName = `bukti_${Date.now()}`;
+                    
+                    // Save attendance
+                    const absenData = {
+                        siswa_id: session.user_id,
+                        jam_masuk: jamMasuk,
+                        status: status,
+                        status_waktu: statusWaktu,
+                        keterangan: keterangan,
+                        bukti_file: buktiFileName
+                    };
+                    
+                    DB.saveAbsensiMasuk(absenData);
+                    showAlert('Absensi berhasil disimpan!', 'success');
+                    
+                    setTimeout(() => {
+                        redirectTo('download-absen.html');
+                    }, 1000);
+                };
+                reader.readAsDataURL(buktiFile);
+            } else {
+                // Save attendance without file
+                const absenData = {
+                    siswa_id: session.user_id,
+                    jam_masuk: jamMasuk,
+                    status: status,
+                    status_waktu: statusWaktu,
+                    keterangan: keterangan,
+                    bukti_file: null
+                };
+                
+                DB.saveAbsensiMasuk(absenData);
+                showAlert('Absensi berhasil disimpan!', 'success');
+                
+                setTimeout(() => {
+                    redirectTo('download-absen.html');
+                }, 1000);
+            }
+        });
+        
+        // Show Alert
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `<span>${message}</span>`;
+            
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+        }
+        
+        // Initialize
+        displayStudentInfo();
+    </script>
+</body>
+</html>

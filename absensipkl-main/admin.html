@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Interface - Sistem Absensi</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body class="admin-body">
+    <div class="container">
+        <div class="admin-dashboard">
+            <div class="top-bar">
+                <h2>Admin Dashboard</h2>
+                <button type="button" class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px;">
+                <button type="button" class="btn btn-primary" id="tabAbsensi" onclick="switchTab('absensi')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    📊 Data Absensi
+                </button>
+                <button type="button" class="btn btn-secondary" id="tabSiswa" onclick="switchTab('siswa')">
+                    👥 Kelola Siswa
+                </button>
+                <button type="button" class="btn btn-secondary" id="tabQR" onclick="switchTab('qr')">
+                    🔐 Global QR
+                </button>
+                <button type="button" class="btn btn-secondary" id="tabSettings" onclick="switchTab('settings')">
+                    ⚙ Pengaturan
+                </button>
+            </div>
+            
+            <!-- ====== TAB ABSENSI ====== -->
+            <div id="sectionAbsensi" style="display: block;">
+                <!-- Statistics -->
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <h3>Total Siswa</h3>
+                        <div class="number" id="totalSiswa">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Hadir Hari Ini</h3>
+                        <div class="number" id="hadirHariIni">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Tidak Hadir</h3>
+                        <div class="number" id="tidakHadir">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Izin/Sakit</h3>
+                        <div class="number" id="izinSakit">0</div>
+                    </div>
+                </div>
+                
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <input type="text" id="filterNama" placeholder="Cari nama siswa...">
+                    <select id="filterStatus">
+                        <option value="">-- Semua Status --</option>
+                        <option value="Hadir">Hadir</option>
+                        <option value="Sakit">Sakit</option>
+                        <option value="Izin">Izin</option>
+                        <option value="Absen">Absen</option>
+                    </select>
+                    <input type="date" id="filterTanggal">
+                    <button type="button" class="btn btn-primary" onclick="applyFilter()" style="width: 100%;">
+                        🔍 Filter
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFilter()" style="width: 100%;">
+                        🔄 Reset
+                    </button>
+                </div>
+                
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama</th>
+                                <th>Kelas</th>
+                                <th>Bidang</th>
+                                <th>Tanggal</th>
+                                <th>Status Masuk</th>
+                                <th>Jam Masuk</th>
+                                <th>Status Waktu</th>
+                                <th>Keterangan</th>
+                                <th>Status Pulang</th>
+                                <th>Jam Pulang</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="11" style="text-align: center; color: #666;">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination" id="paginationContainer" style="margin-top: 20px;"></div>
+                
+                <!-- Export Section -->
+                <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <button type="button" class="btn btn-success" onclick="exportToday()">
+                        📥 Download Hari Ini
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="exportAll()">
+                        📥 Download Semua
+                    </button>
+                </div>
+            </div>
+            
+            <!-- ====== TAB KELOLA SISWA ====== -->
+            <div id="sectionSiswa" style="display: none;">
+                <!-- Add Student Button -->
+                <div style="margin-bottom: 20px;">
+                    <button type="button" class="btn btn-primary" onclick="toggleAddForm()" id="btnAddSiswa">
+                        ➕ Tambah Siswa Baru
+                    </button>
+                </div>
+                
+                <!-- Add Student Form -->
+                <div id="formAddSiswa" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px;">Buat Akun Siswa / Mahasiswa</h3>
+                    <form id="formTambahSiswa" class="login-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="namaNew">Nama *</label>
+                                <input type="text" id="namaNew" name="namaNew" placeholder="Nama lengkap" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="noHp">No HP untuk login *</label>
+                                <input type="tel" id="noHp" name="noHp" placeholder="08123456789" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="jenisPenggunaNew">Jenis Pengguna *</label>
+                                <select id="jenisPenggunaNew" name="jenisPenggunaNew" required>
+                                    <option value="siswa">Siswa</option>
+                                    <option value="mahasiswa">Mahasiswa</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="passwordNew">Password untuk login *</label>
+                                <input type="password" id="passwordNew" name="passwordNew" placeholder="Buat password" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="kelasNew">Kelas / Semester (opsional)</label>
+                                <input type="text" id="kelasNew" name="kelasNew" placeholder="Contoh: 10-A atau Semester 3">
+                            </div>
+                            <div class="form-group">
+                                <label for="sekolah">Sekolah / Kampus (opsional)</label>
+                                <input type="text" id="sekolah" name="sekolah" placeholder="Nama sekolah atau kampus">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="bidangNew">Bidang / Program Studi (opsional)</label>
+                                <input type="text" id="bidangNew" name="bidangNew" placeholder="Contoh: RPL atau Informatika">
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <button type="submit" class="btn btn-success">✓ Buat Akun</button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">✗ Batal</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Student List -->
+                <h3 style="margin-bottom: 15px;">Daftar Siswa</h3>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama</th>
+                                <th>No HP</th>
+                                <th>Jenis</th>
+                                <th>Kelas</th>
+                                <th>Sekolah</th>
+                                <th>Bidang</th>
+                                <th>QR Code</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableSiswa">
+                            <tr>
+                                <td colspan="10" style="text-align: center; color: #666;">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- ====== TAB GLOBAL QR ====== -->
+            <div id="sectionQR" style="display: none;">
+                <h3 style="margin-bottom: 20px;">🔐 Manajemen QR Code Verifikasi Global</h3>
+                
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 20px;">
+                    <p style="color: #856404; margin: 0;"><strong>ℹ Info:</strong> QR Code ini digunakan semua pengguna untuk verifikasi akses sistem sebelum login.</p>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 8px; border: 2px solid #e0e0e0; margin-bottom: 20px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px;">📱 QR Code Preview</h4>
+                    <div style="background: #f8f9fa; padding: 30px; border-radius: 8px; text-align: center; margin-bottom: 20px; min-height: 300px; display: flex; justify-content: center; align-items: center;" id="qrImageContainer">
+                        <p style="color: #999;">QR Code belum dibuat. Klik tombol "Generate QR Baru"</p>
+                    </div>
+                    
+                    <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 12px;">
+                        <p style="margin: 5px 0;"><strong>QR Code Text:</strong></p>
+                        <p style="background: white; padding: 10px; border-radius: 4px; font-family: monospace; word-break: break-all; margin: 5px 0; color: #333;" id="currentQRDisplay">-</p>
+                        <p style="margin: 5px 0;"><strong>Created:</strong> <span id="qrCreatedAt">-</span></p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                        <button type="button" class="btn btn-success" onclick="generateNewQRWithPreview()">
+                            🔄 Generate QR Baru
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="copyCurrentQR()">
+                            📋 Salin QR Code
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="printQR()">
+                            🖨 Print QR Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ====== TAB SETTINGS ====== -->
+            <div id="sectionSettings" style="display: none;">
+                <h3 style="margin-bottom: 20px;">⚙ Pengaturan Sistem</h3>
+                
+                <!-- Login Page Styling -->
+                <div style="background: white; padding: 20px; border-radius: 8px; border: 2px solid #e0e0e0; margin-bottom: 20px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px;">🎨 Styling Halaman Login</h4>
+                    
+                    <!-- Background Image Upload -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">Background Image</label>
+                        <input type="file" id="bgImageInput" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('bgImageInput').click();" style="width: 100%; margin-bottom: 10px;">
+                            📸 Upload Background Image
+                        </button>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; min-height: 150px; display: flex; justify-content: center; align-items: center;" id="bgPreviewContainer">
+                            <p style="color: #999;">Preview background akan ditampilkan di sini</p>
+                        </div>
+                        <p style="font-size: 12px; color: #666; margin-top: 10px;">💡 Disarankan: Ukuran minimal 1920x1080px</p>
+                    </div>
+                    
+                    <!-- Logo Left Upload -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">Logo Kiri Atas</label>
+                        <input type="file" id="logoLeftInput" name="logoLeft" accept="image/*" style="display: none;">
+                        <label for="logoLeftInput" class="file-input-label">
+                            📸 Upload Logo Kiri Atas
+                        </label>
+                        <div style="margin-top: 10px; background: #f0f0f0; padding: 15px; border-radius: 6px; min-height: 100px; display: flex; align-items: center; justify-content: center;" id="logoLeftPreview">
+                            <p style="color: #999; margin: 0;">Preview logo akan tampil di sini</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Reset Data Section -->
+                    <div style="margin-bottom: 20px; background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #856404;">⚠ Reset Data Absensi</label>
+                        <p style="color: #856404; font-size: 13px; margin: 10px 0;">Hapus semua data absensi (masuk & pulang). Tindakan ini tidak dapat dibatalkan!</p>
+                        <button type="button" class="btn btn-danger" onclick="resetAbsensiData()" style="width: 100%;">
+                            🗑 Hapus Semua Data Absensi
+                        </button>
+                    </div>
+                    
+                    <!-- Preview Info -->
+                    <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #28a745;">
+                        <p style="color: #155724; margin: 0;"><strong>✓ Setting akan langsung terterapkan di halaman login!</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Generate QR Code -->
+    <div id="modalQR" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 450px; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-height: 90vh; overflow-y: auto;">
+            <h2 style="margin-bottom: 20px;">QR Code Siswa (Referensi)</h2>
+            
+            <div style="background: #f0f0f0; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; min-height: 250px;" id="qrModalImageContainer">
+                Loading...
+            </div>
+            
+            <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 12px; text-align: left;">
+                <p style="margin: 5px 0;"><strong>Siswa:</strong> <span id="qrSiswanama"></span></p>
+                <p style="margin: 5px 0;"><strong>QR Code:</strong> <span id="qrDisplay" style="font-family: monospace; word-break: break-all;"></span></p>
+                <p style="margin: 5px 0;"><strong>Generated:</strong> <span id="qrTime"></span></p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button type="button" class="btn btn-primary" onclick="copyQRCode()">📋 Salin QR</button>
+                <button type="button" class="btn btn-secondary" onclick="closeQRModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-config.js"></script>
+    <script src="data.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/2.8.0/xlsx.full.min.js"></script>
+    <script>
+        const session = checkAdminLogin();
+        
+        // Tab State
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let currentQRModal = null;
+        let remoteStudents = [];
+        
+        // Switch Tab
+        function switchTab(tab) {
+            const tabAbsensi = document.getElementById('tabAbsensi');
+            const tabSiswa = document.getElementById('tabSiswa');
+            const tabQR = document.getElementById('tabQR');
+            const tabSettings = document.getElementById('tabSettings');
+            const sectionAbsensi = document.getElementById('sectionAbsensi');
+            const sectionSiswa = document.getElementById('sectionSiswa');
+            const sectionQR = document.getElementById('sectionQR');
+            const sectionSettings = document.getElementById('sectionSettings');
+            
+            // Reset all styles
+            [tabAbsensi, tabSiswa, tabQR, tabSettings].forEach(t => {
+                t.style.background = '#e9ecef';
+                t.style.color = '#333';
+            });
+            
+            [sectionAbsensi, sectionSiswa, sectionQR, sectionSettings].forEach(s => {
+                s.style.display = 'none';
+            });
+            
+            if (tab === 'absensi') {
+                sectionAbsensi.style.display = 'block';
+                tabAbsensi.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                tabAbsensi.style.color = 'white';
+                initialize();
+            } else if (tab === 'siswa') {
+                sectionSiswa.style.display = 'block';
+                tabSiswa.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                tabSiswa.style.color = 'white';
+                displayStudentList();
+            } else if (tab === 'qr') {
+                sectionQR.style.display = 'block';
+                tabQR.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                tabQR.style.color = 'white';
+                displayGlobalQRInfo();
+            } else if (tab === 'settings') {
+                sectionSettings.style.display = 'block';
+                tabSettings.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                tabSettings.style.color = 'white';
+                loadSettingsUI();
+            }
+        }
+        
+        // ====== ABSENSI TAB FUNCTIONS ======
+        
+        function autoMarkAbsen() {
+            // DISABLED: Fitur auto-mark absen at 12 PM menggangu testing
+            // Uncomment jika ingin enable kembali
+            /*
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const today = now.toISOString().split('T')[0];
+            
+            // Check if it's 12:00 PM or later
+            if (currentHour >= 12) {
+                const siswa = DB.getSiswa().filter(s => s.aktif);
+                const todayAbsensi = DB.getAbsensiMasuk().filter(a => a.tanggal === today);
+                
+                // Mark unattended students as absent
+                siswa.forEach(student => {
+                    const hasAbsent = todayAbsensi.find(a => a.siswa_id == student.id);
+                    
+                    if (!hasAbsent) {
+                        // Auto mark as absent at 12:00 PM
+                        DB.saveAbsensiMasuk({
+                            siswa_id: student.id,
+                            status: 'Absen',
+                            jam_masuk: '12:00:00',
+                            status_waktu: 'Lembur',
+                            keterangan: 'Otomatis ditandai absen (tidak input absensi)'
+                        });
+                    }
+                });
+            }
+            */
+        }
+        
+        function initialize() {
+            autoMarkAbsen();
+            loadData();
+            updateStatistics();
+            displayTable();
+        }
+        
+        function loadData() {
+            const siswa = DB.getSiswa();
+            const absensiMasuk = DB.getAbsensiMasuk();
+            const absensiKeluar = DB.getAbsensiKeluar();
+            
+            allData = [];
+            
+            absensiMasuk.forEach(masuk => {
+                const student = siswa.find(s => s.id == masuk.siswa_id);
+                const pulang = absensiKeluar.find(p => p.siswa_id == masuk.siswa_id && p.tanggal === masuk.tanggal);
+                
+                if (student) {
+                    allData.push({
+                        siswa_id: masuk.siswa_id,
+                        nama: student.nama,
+                        kelas: student.kelas,
+                        bidang: student.bidang,
+                        tanggal: masuk.tanggal,
+                        status_masuk: masuk.status,
+                        jam_masuk: masuk.jam_masuk,
+                        status_waktu: masuk.status_waktu,
+                        keterangan: masuk.keterangan,
+                        bukti_file: masuk.bukti_file,
+                        status_pulang: pulang?.status_pulang || '-',
+                        jam_pulang: pulang?.jam_keluar || '-'
+                    });
+                }
+            });
+            
+            filteredData = [...allData].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+        }
+        
+        function updateStatistics() {
+            const siswa = DB.getSiswa();
+            const today = new Date().toISOString().split('T')[0];
+            const todayAbsensi = DB.getAbsensiMasuk().filter(a => a.tanggal === today);
+            
+            document.getElementById('totalSiswa').textContent = siswa.filter(s => s.aktif).length;
+            
+            const hadir = todayAbsensi.filter(a => a.status === 'Hadir').length;
+            const tidakHadir = todayAbsensi.filter(a => a.status === 'Absen').length;
+            const izinSakit = todayAbsensi.filter(a => ['Sakit', 'Izin'].includes(a.status)).length;
+            
+            document.getElementById('hadirHariIni').textContent = hadir;
+            document.getElementById('tidakHadir').textContent = tidakHadir;
+            document.getElementById('izinSakit').textContent = izinSakit;
+        }
+        
+        function applyFilter() {
+            const namaFilter = document.getElementById('filterNama').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+            const tanggalFilter = document.getElementById('filterTanggal').value;
+            
+            filteredData = allData.filter(item => {
+                const namaMatch = item.nama.toLowerCase().includes(namaFilter);
+                const statusMatch = statusFilter === '' || item.status_masuk === statusFilter;
+                const tanggalMatch = tanggalFilter === '' || item.tanggal === tanggalFilter;
+                
+                return namaMatch && statusMatch && tanggalMatch;
+            });
+            
+            currentPage = 1;
+            displayTable();
+        }
+        
+        function resetFilter() {
+            document.getElementById('filterNama').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterTanggal').value = '';
+            
+            filteredData = [...allData].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            currentPage = 1;
+            displayTable();
+        }
+        
+        function displayTable() {
+            const tableBody = document.getElementById('tableBody');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredData.slice(start, end);
+            
+            if (pageData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: #666;">Tidak ada data</td></tr>';
+            } else {
+                tableBody.innerHTML = pageData.map((item, index) => {
+                    // Only show jam_pulang and keterangan for "Hadir" status
+                    const isHadir = item.status_masuk === 'Hadir';
+                    const keterangan = isHadir ? (item.keterangan ? item.keterangan.substring(0, 20) + '...' : '-') : '-';
+                    const statusPulang = isHadir ? (item.status_pulang === '-' ? '-' : `<span class="badge badge-success">${item.status_pulang}</span>`) : '-';
+                    const jamPulang = isHadir ? formatTime(item.jam_pulang) : '-';
+                    
+                    return `
+                    <tr>
+                        <td>${start + index + 1}</td>
+                        <td>${item.nama}</td>
+                        <td>${item.kelas}</td>
+                        <td>${item.bidang || '-'}</td>
+                        <td>${formatDate(item.tanggal)}</td>
+                        <td><span class="badge badge-primary">${item.status_masuk}</span></td>
+                        <td>${formatTime(item.jam_masuk)}</td>
+                        <td>${item.status_waktu || '-'}</td>
+                        <td>${keterangan}</td>
+                        <td>${statusPulang}</td>
+                        <td>${jamPulang}</td>
+                    </tr>
+                    `;
+                }).join('');
+            }
+            
+            displayPagination();
+        }
+        
+        function displayPagination() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const paginationContainer = document.getElementById('paginationContainer');
+            
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            if (currentPage > 1) {
+                html += `<a href="#" onclick="goToPage(${currentPage - 1}); return false;">← Sebelumnya</a>`;
+            }
+            
+            for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                if (i === currentPage) {
+                    html += `<span class="active">${i}</span>`;
+                } else {
+                    html += `<a href="#" onclick="goToPage(${i}); return false;">${i}</a>`;
+                }
+            }
+            
+            if (totalPages > 5) {
+                html += '<span>...</span>';
+                html += `<a href="#" onclick="goToPage(${totalPages}); return false;">${totalPages}</a>`;
+            }
+            
+            if (currentPage < totalPages) {
+                html += `<a href="#" onclick="goToPage(${currentPage + 1}); return false;">Berikutnya →</a>`;
+            }
+            
+            paginationContainer.innerHTML = html;
+        }
+        
+        function goToPage(page) {
+            currentPage = page;
+            displayTable();
+        }
+        
+        function exportToday() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayData = filteredData.filter(item => item.tanggal === today);
+            
+            if (todayData.length === 0) {
+                alert('Tidak ada data untuk hari ini');
+                return;
+            }
+            
+            const data = todayData.map(item => {
+                const isHadir = item.status_masuk === 'Hadir';
+                return {
+                    'Nama': item.nama,
+                    'Kelas': item.kelas,
+                    'Bidang': item.bidang || '-',
+                    'Tanggal': formatDate(item.tanggal),
+                    'Status Masuk': item.status_masuk,
+                    'Jam Masuk': formatTime(item.jam_masuk),
+                    'Status Waktu': item.status_waktu || '-',
+                    'Keterangan': isHadir ? (item.keterangan || '-') : '-',
+                    'Status Pulang': isHadir ? item.status_pulang : '-',
+                    'Jam Pulang': isHadir ? formatTime(item.jam_pulang) : '-'
+                };
+            });
+            
+            exportToCSV(data, `Absensi_${today}.csv`);
+        }
+        
+        function exportAll() {
+            if (filteredData.length === 0) {
+                alert('Tidak ada data untuk diexport');
+                return;
+            }
+            
+            const data = filteredData.map(item => {
+                const isHadir = item.status_masuk === 'Hadir';
+                return {
+                    'Nama': item.nama,
+                    'Kelas': item.kelas,
+                    'Bidang': item.bidang || '-',
+                    'Tanggal': formatDate(item.tanggal),
+                    'Status Masuk': item.status_masuk,
+                    'Jam Masuk': formatTime(item.jam_masuk),
+                    'Status Waktu': item.status_waktu || '-',
+                    'Keterangan': isHadir ? (item.keterangan || '-') : '-',
+                    'Status Pulang': isHadir ? item.status_pulang : '-',
+                    'Jam Pulang': isHadir ? formatTime(item.jam_pulang) : '-'
+                };
+            });
+            
+            exportToCSV(data, `Absensi_Laporan_${new Date().toISOString().split('T')[0]}.csv`);
+        }
+        
+        // ====== SISWA TAB FUNCTIONS ======
+        
+        function toggleAddForm() {
+            const form = document.getElementById('formAddSiswa');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        async function displayStudentList() {
+            const tableSiswa = document.getElementById('tableSiswa');
+            const client = window.absensiSupabase.client;
+
+            if (!client) {
+                tableSiswa.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #666;">Konfigurasi Supabase belum diisi</td></tr>';
+                return;
+            }
+
+            const { data: profiles, error } = await client
+                .from('profiles')
+                .select('id, user_id, nomor_hp, nama, jenis_pengguna, kelas, bidang, qr_code, aktif')
+                .order('nama');
+
+            if (error) {
+                tableSiswa.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #666;">Gagal memuat akun dari Supabase</td></tr>';
+                return;
+            }
+
+            remoteStudents = profiles.map(profile => ({
+                ...profile,
+                password: '',
+                sekolah: '',
+                qr_verified: false
+            }));
+            const siswa = remoteStudents;
+            
+            if (siswa.length === 0) {
+                tableSiswa.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #666;">Tidak ada akun</td></tr>';
+                return;
+            }
+            
+            tableSiswa.innerHTML = siswa.map((s, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${s.nama}</td>
+                    <td>${s.nomor_hp}</td>
+                    <td>${s.jenis_pengguna === 'mahasiswa' ? 'Mahasiswa' : 'Siswa'}</td>
+                    <td>${s.kelas || '-'}</td>
+                    <td>${s.sekolah || '-'}</td>
+                    <td>${s.bidang || '-'}</td>
+                    <td style="font-size: 11px; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${s.qr_code}</td>
+                    <td>
+                        ${s.qr_verified ? '<span class="badge badge-success">✓ Verified</span>' : '<span class="badge badge-warning">⚠ Pending</span>'}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="showQRModal(${s.id})">🔑 QR</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteStudent(${s.id})" style="margin-top: 3px;">🗑 Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function showQRModal(siswaId) {
+            const siswa = remoteStudents.find(student => String(student.id) === String(siswaId));
+            currentQRModal = siswa;
+            
+            // Generate QR code image
+            const imageContainer = document.getElementById('qrModalImageContainer');
+            imageContainer.innerHTML = '';
+            new QRCode(imageContainer, {
+                text: siswa.qr_code,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            document.getElementById('qrDisplay').textContent = siswa.qr_code;
+            document.getElementById('qrSiswanama').textContent = siswa.nama;
+            document.getElementById('qrTime').textContent = new Date().toLocaleString('id-ID');
+            
+            const modal = document.getElementById('modalQR');
+            modal.style.display = 'flex';
+        }
+        
+        function closeQRModal() {
+            const modal = document.getElementById('modalQR');
+            modal.style.display = 'none';
+            currentQRModal = null;
+        }
+        
+        function copyQRCode() {
+            const qrCode = document.getElementById('qrDisplay').textContent;
+            navigator.clipboard.writeText(qrCode);
+            alert('QR Code disalin: ' + qrCode);
+        }
+        
+        async function deleteStudent(siswaId) {
+            if (confirm('Yakin akan menghapus siswa ini?')) {
+                const siswa = remoteStudents.find(student => String(student.id) === String(siswaId));
+                const { error } = await window.absensiSupabase.client.functions.invoke('admin-manage-users', {
+                    body: { action: 'delete', user_id: siswa.user_id }
+                });
+
+                if (error) {
+                    alert(error.message || 'Akun gagal dihapus.');
+                    return;
+                }
+
+                await displayStudentList();
+                alert('Akun berhasil dihapus.');
+            }
+        }
+        
+        // Form Submit
+        document.getElementById('formTambahSiswa').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const noHp = document.getElementById('noHp').value.trim();
+            const nama = document.getElementById('namaNew').value.trim();
+            const jenisPengguna = document.getElementById('jenisPenggunaNew').value;
+            const kelas = document.getElementById('kelasNew').value.trim();
+            const sekolah = document.getElementById('sekolah').value.trim();
+            const bidang = document.getElementById('bidangNew').value.trim();
+            const password = document.getElementById('passwordNew').value;
+            
+            if (!noHp || !nama || !jenisPengguna || !password) {
+                alert('Nama, nomor HP, jenis pengguna, dan password wajib diisi!');
+                return;
+            }
+            
+            const client = window.absensiSupabase.client;
+            if (!client) {
+                alert('Konfigurasi Supabase belum diisi.');
+                return;
+            }
+            
+            const { data, error } = await client.functions.invoke('admin-manage-users', {
+                body: {
+                    action: 'create',
+                    nomor_hp: noHp,
+                    password,
+                    nama,
+                    jenis_pengguna: jenisPengguna,
+                    kelas,
+                    bidang
+                }
+            });
+
+            if (error || data?.error) {
+                alert(data?.error || error.message || 'Akun gagal dibuat.');
+                return;
+            }
+
+            const newSiswa = data.profile;
+
+            const jenisLabel = jenisPengguna === 'mahasiswa' ? 'Mahasiswa' : 'Siswa';
+            alert(`Akun ${jenisLabel} berhasil dibuat.\n\nNo HP: ${newSiswa.nomor_hp}\nQR Code: ${newSiswa.qr_code}`);
+
+            document.getElementById('formTambahSiswa').reset();
+            document.getElementById('formAddSiswa').style.display = 'none';
+            await displayStudentList();
+        });
+        
+        // Close modal on outside click
+        document.getElementById('modalQR').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeQRModal();
+            }
+        });
+        
+        // ====== SETTINGS TAB FUNCTIONS ======
+        
+        function loadSettingsUI() {
+            const bgImage = localStorage.getItem('login_background_image');
+            const logoLeftImage = localStorage.getItem('login_logo_left_image');
+            
+            // Load background image
+            if (bgImage) {
+                const bgPreview = document.createElement('img');
+                bgPreview.src = bgImage;
+                bgPreview.style.maxWidth = '100%';
+                bgPreview.style.maxHeight = '200px';
+                bgPreview.style.borderRadius = '8px';
+                document.getElementById('bgPreviewContainer').innerHTML = '';
+                document.getElementById('bgPreviewContainer').appendChild(bgPreview);
+            }
+            
+            // Load logo left image
+            if (logoLeftImage) {
+                const logoPreview = document.createElement('img');
+                logoPreview.src = logoLeftImage;
+                logoPreview.style.maxWidth = '100%';
+                logoPreview.style.maxHeight = '120px';
+                logoPreview.style.borderRadius = '6px';
+                document.getElementById('logoLeftPreview').innerHTML = '';
+                document.getElementById('logoLeftPreview').appendChild(logoPreview);
+            }
+        }
+        
+        // Logo Left Image Upload
+        document.getElementById('logoLeftInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                alert('File harus berupa gambar!');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageData = event.target.result;
+                localStorage.setItem('login_logo_left_image', imageData);
+                
+                const logoPreview = document.createElement('img');
+                logoPreview.src = imageData;
+                logoPreview.style.maxWidth = '100%';
+                logoPreview.style.maxHeight = '120px';
+                logoPreview.style.borderRadius = '6px';
+                
+                document.getElementById('logoLeftPreview').innerHTML = '';
+                document.getElementById('logoLeftPreview').appendChild(logoPreview);
+                
+                alert('✓ Logo kiri berhasil disimpan! Halaman login akan terupdate otomatis.');
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Background Image Upload
+        document.getElementById('bgImageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('File harus berupa gambar!');
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageData = event.target.result;
+                localStorage.setItem('login_background_image', imageData);
+
+                const bgPreview = document.createElement('img');
+                bgPreview.src = imageData;
+                bgPreview.style.maxWidth = '100%';
+                bgPreview.style.maxHeight = '200px';
+                bgPreview.style.borderRadius = '8px';
+
+                document.getElementById('bgPreviewContainer').innerHTML = '';
+                document.getElementById('bgPreviewContainer').appendChild(bgPreview);
+                alert('Background berhasil disimpan!');
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Reset Absensi Data
+        function resetAbsensiData() {
+            const confirmReset = confirm('⚠ PERHATIAN!\n\nAnda akan menghapus SEMUA data absensi (masuk & pulang).\n\nTindakan ini TIDAK dapat dibatalkan!\n\nLanjutkan?');
+            
+            if (confirmReset) {
+                const confirmed = confirm('Ketik "YA" untuk mengonfirmasi penghapusan data:\n\n(Hanya test, pastikan Anda benar-benar ingin menghapus)');
+                
+                if (confirmed) {
+                    // Clear all attendance data from localStorage
+                    localStorage.removeItem('absensi_masuk');
+                    localStorage.removeItem('absensi_keluar');
+                    
+                    // Reinitialize empty arrays
+                    DB.setAbsensiMasuk([]);
+                    DB.setAbsensiKeluar([]);
+                    
+                    alert('✓ Semua data absensi telah dihapus!\n\nDashboard akan di-refresh otomatis...');
+                    
+                    // Reload data and refresh all displays
+                    loadData();
+                    updateStatistics();
+                    displayTable();
+                    
+                    console.log('✓ Attendance data reset successfully - localStorage cleared');
+                }
+            }
+        }
+        
+        // Event listeners for absensi tab
+        document.getElementById('filterNama').addEventListener('keyup', applyFilter);
+        document.getElementById('filterStatus').addEventListener('change', applyFilter);
+        document.getElementById('filterTanggal').addEventListener('change', applyFilter);
+        
+        // ====== GLOBAL QR FUNCTIONS ======
+        
+        function displayGlobalQRInfo() {
+            const globalQR = DB.getGlobalQR();
+            const container = document.getElementById('qrImageContainer');
+            
+            if (!globalQR) {
+                container.innerHTML = '<p style=\"color: #999;\">QR Code belum dibuat. Klik tombol "Generate QR Baru"</p>';
+                document.getElementById('currentQRDisplay').textContent = '-';
+                document.getElementById('qrCreatedAt').textContent = '-';
+                return;
+            }
+            
+            // Generate QR code image
+            container.innerHTML = '';
+            try {
+                new QRCode(container, {
+                    text: globalQR.qr_code,
+                    width: 250,
+                    height: 250,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch(e) {
+                console.log('QR generation:', e.message);
+            }
+            
+            document.getElementById('currentQRDisplay').textContent = globalQR.qr_code;
+            document.getElementById('qrCreatedAt').textContent = new Date(globalQR.created_at).toLocaleString('id-ID');
+        }
+        
+        function copyCurrentQR() {
+            const globalQR = DB.getGlobalQR();
+            if (!globalQR) {
+                alert('QR Code belum dibuat');
+                return;
+            }
+            
+            navigator.clipboard.writeText(globalQR.qr_code);
+            alert('✓ QR Code disalin ke clipboard:\n' + globalQR.qr_code);
+        }
+        
+        function generateNewQR() {
+            if (confirm('⚠ Membuat QR Code baru akan mengganti QR Code lama.\n\nLanjutkan?')) {
+                const newQR = DB.generateNewGlobalQR();
+                alert(`✓ QR Code baru berhasil dibuat!\n\n${newQR}`);
+                localStorage.removeItem('global_qr_verified');
+                displayGlobalQRInfo();
+            }
+        }
+        
+        function generateNewQRWithPreview() {
+            if (confirm('⚠ Membuat QR Code baru akan mengganti QR Code lama.\n\nLanjutkan?')) {
+                const newQR = DB.generateNewGlobalQR();
+                localStorage.removeItem('global_qr_verified');
+                displayGlobalQRInfo();
+                alert(`✓ QR Code baru berhasil dibuat!\n\nQR Code: ${newQR}`);
+            }
+        }
+        
+        function printQR() {
+            const globalQR = DB.getGlobalQR();
+            if (!globalQR) {
+                alert('QR Code belum dibuat');
+                return;
+            }
+            
+            const printWindow = window.open('', '', 'height=800, width=600');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print QR Code Verifikasi</title>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 100vh;
+                            margin: 0;
+                            background: white;
+                            padding: 20px;
+                        }
+                        .qr-container {
+                            text-align: center;
+                            padding: 40px;
+                            border: 2px solid #667eea;
+                            border-radius: 10px;
+                            max-width: 600px;
+                            background: white;
+                        }
+                        h1 {
+                            color: #333;
+                            margin-bottom: 10px;
+                            font-size: 24px;
+                        }
+                        .qr-image {
+                            background: white;
+                            padding: 20px;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            margin: 20px 0;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 300px;
+                        }
+                        .instructions {
+                            text-align: left;
+                            background: #e7f3ff;
+                            padding: 15px;
+                            border-radius: 8px;
+                            margin-top: 20px;
+                        }
+                        .instructions p {
+                            margin: 8px 0;
+                            font-size: 14px;
+                            color: #333;
+                        }
+                        .instructions strong {
+                            color: #667eea;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 12px;
+                            color: #999;
+                        }
+                        @media print {
+                            body {
+                                margin: 0;
+                                padding: 0;
+                                background: white;
+                            }
+                            .qr-container {
+                                border: none;
+                                box-shadow: none;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="qr-container">
+                        <h1>🔐 QR Code Verifikasi Sistem Absensi</h1>
+                        <div class="qr-image" id="qrCodeContainer"></div>
+                        <div class="instructions">
+                            <p><strong>📌 Petunjuk Penggunaan:</strong></p>
+                            <p>✓ Scan QR Code ini untuk memverifikasi akses ke sistem absensi</p>
+                            <p>✓ Pastikan QR Code dalam kondisi baik agar dapat terbaca dengan sempurna</p>
+                            <p>✓ Setiap pengguna harus memverifikasi QR Code ini sebelum melakukan login</p>
+                            <p><strong style="color: #333;">QR Code: ${globalQR.qr_code}</strong></p>
+                        </div>
+                        <div class="footer">
+                            <p>Dibuat: ${new Date().toLocaleString('id-ID')}</p>
+                            <p>Sistem Absensi QR Code</p>
+                        </div>
+                    </div>
+                    <script>
+                        new QRCode(document.getElementById('qrCodeContainer'), {
+                            text: '${globalQR.qr_code}',
+                            width: 250,
+                            height: 250,
+                            colorDark: '#000000',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        }
+        
+        // Initialize
+        initialize();
+    </script>
+</body>
+</html>
