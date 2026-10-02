@@ -122,43 +122,53 @@
                 
                 <!-- Add Student Form -->
                 <div id="formAddSiswa" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 15px;">Tambah Siswa Baru</h3>
+                    <h3 style="margin-bottom: 15px;">Buat Akun Siswa / Mahasiswa</h3>
                     <form id="formTambahSiswa" class="login-form">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="noHp">Nomor HP *</label>
-                                <input type="text" id="noHp" name="noHp" placeholder="08123456789" required>
+                                <label for="namaNew">Nama *</label>
+                                <input type="text" id="namaNew" name="namaNew" placeholder="Nama lengkap" required>
                             </div>
                             <div class="form-group">
-                                <label for="namaNew">Nama Lengkap *</label>
-                                <input type="text" id="namaNew" name="namaNew" placeholder="Nama Siswa" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="kelasNew">Kelas *</label>
-                                <input type="text" id="kelasNew" name="kelasNew" placeholder="10-A" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="sekolah">Sekolah *</label>
-                                <input type="text" id="sekolah" name="sekolah" placeholder="SMK Negeri 1" required>
+                                <label for="noHp">No HP untuk login *</label>
+                                <input type="tel" id="noHp" name="noHp" placeholder="08123456789" required>
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="bidangNew">Bidang *</label>
-                                <input type="text" id="bidangNew" name="bidangNew" placeholder="RPL, TKJ, etc" required>
+                                <label for="jenisPenggunaNew">Jenis Pengguna *</label>
+                                <select id="jenisPenggunaNew" name="jenisPenggunaNew" required>
+                                    <option value="siswa">Siswa</option>
+                                    <option value="mahasiswa">Mahasiswa</option>
+                                </select>
                             </div>
                             <div class="form-group">
-                                <label for="passwordNew">Password *</label>
-                                <input type="password" id="passwordNew" name="passwordNew" placeholder="Masukkan password" required>
+                                <label for="passwordNew">Password untuk login *</label>
+                                <input type="password" id="passwordNew" name="passwordNew" placeholder="Buat password" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="kelasNew">Kelas / Semester (opsional)</label>
+                                <input type="text" id="kelasNew" name="kelasNew" placeholder="Contoh: 10-A atau Semester 3">
+                            </div>
+                            <div class="form-group">
+                                <label for="sekolah">Sekolah / Kampus (opsional)</label>
+                                <input type="text" id="sekolah" name="sekolah" placeholder="Nama sekolah atau kampus">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="bidangNew">Bidang / Program Studi (opsional)</label>
+                                <input type="text" id="bidangNew" name="bidangNew" placeholder="Contoh: RPL atau Informatika">
                             </div>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <button type="submit" class="btn btn-success">✓ Simpan Siswa</button>
+                            <button type="submit" class="btn btn-success">✓ Buat Akun</button>
                             <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">✗ Batal</button>
                         </div>
                     </form>
@@ -173,6 +183,7 @@
                                 <th>No</th>
                                 <th>Nama</th>
                                 <th>No HP</th>
+                                <th>Jenis</th>
                                 <th>Kelas</th>
                                 <th>Sekolah</th>
                                 <th>Bidang</th>
@@ -183,7 +194,7 @@
                         </thead>
                         <tbody id="tableSiswa">
                             <tr>
-                                <td colspan="9" style="text-align: center; color: #666;">Memuat data...</td>
+                                <td colspan="10" style="text-align: center; color: #666;">Memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -276,7 +287,7 @@
     </div>
 
     <!-- Modal Generate QR Code -->
-    <div id="modalQR" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; flex-display: flex; align-items: center; justify-content: center;">
+    <div id="modalQR" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 450px; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-height: 90vh; overflow-y: auto;">
             <h2 style="margin-bottom: 20px;">QR Code Siswa (Referensi)</h2>
             
@@ -614,7 +625,7 @@
             const tableSiswa = document.getElementById('tableSiswa');
             
             if (siswa.length === 0) {
-                tableSiswa.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #666;">Tidak ada siswa</td></tr>';
+                tableSiswa.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #666;">Tidak ada akun</td></tr>';
                 return;
             }
             
@@ -623,7 +634,8 @@
                     <td>${index + 1}</td>
                     <td>${s.nama}</td>
                     <td>${s.nomor_hp}</td>
-                    <td>${s.kelas}</td>
+                    <td>${s.jenis_pengguna === 'mahasiswa' ? 'Mahasiswa' : 'Siswa'}</td>
+                    <td>${s.kelas || '-'}</td>
                     <td>${s.sekolah || '-'}</td>
                     <td>${s.bidang || '-'}</td>
                     <td style="font-size: 11px; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${s.qr_code}</td>
@@ -690,13 +702,14 @@
             
             const noHp = document.getElementById('noHp').value.trim();
             const nama = document.getElementById('namaNew').value.trim();
+            const jenisPengguna = document.getElementById('jenisPenggunaNew').value;
             const kelas = document.getElementById('kelasNew').value.trim();
             const sekolah = document.getElementById('sekolah').value.trim();
             const bidang = document.getElementById('bidangNew').value.trim();
             const password = document.getElementById('passwordNew').value.trim();
             
-            if (!noHp || !nama || !kelas || !sekolah || !bidang || !password) {
-                alert('Semua field harus diisi!');
+            if (!noHp || !nama || !jenisPengguna || !password) {
+                alert('Nama, nomor HP, jenis pengguna, dan password wajib diisi!');
                 return;
             }
             
@@ -711,12 +724,14 @@
                 nomor_hp: noHp,
                 password: password,
                 nama: nama,
+                jenis_pengguna: jenisPengguna,
                 kelas: kelas,
                 sekolah: sekolah,
                 bidang: bidang
             });
             
-            alert(`Siswa berhasil ditambahkan!\n\nQR Code: ${newSiswa.qr_code}\n\nNo HP: ${noHp}\nPassword: ${password}`);
+            const jenisLabel = jenisPengguna === 'mahasiswa' ? 'Mahasiswa' : 'Siswa';
+            alert(`Akun ${jenisLabel} berhasil dibuat!\n\nQR Code: ${newSiswa.qr_code}\n\nNo HP: ${noHp}\nPassword: ${password}`);
             
             // Reset form
             document.getElementById('formTambahSiswa').reset();
@@ -790,7 +805,33 @@
         });
         
         // Background Image Upload
-        document.getElementById('bgImageInput').addEventListener('change',
+        document.getElementById('bgImageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('File harus berupa gambar!');
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageData = event.target.result;
+                localStorage.setItem('login_background_image', imageData);
+
+                const bgPreview = document.createElement('img');
+                bgPreview.src = imageData;
+                bgPreview.style.maxWidth = '100%';
+                bgPreview.style.maxHeight = '200px';
+                bgPreview.style.borderRadius = '8px';
+
+                document.getElementById('bgPreviewContainer').innerHTML = '';
+                document.getElementById('bgPreviewContainer').appendChild(bgPreview);
+                alert('Background berhasil disimpan!');
+            };
+            reader.readAsDataURL(file);
+        });
         
         // Reset Absensi Data
         function resetAbsensiData() {

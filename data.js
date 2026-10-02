@@ -121,9 +121,10 @@ const DB = {
             nomor_hp: siswaData.nomor_hp,
             password: btoa(siswaData.password),
             nama: siswaData.nama,
-            kelas: siswaData.kelas,
+            jenis_pengguna: siswaData.jenis_pengguna || 'siswa',
+            kelas: siswaData.kelas || '',
             sekolah: siswaData.sekolah || '',
-            bidang: siswaData.bidang,
+            bidang: siswaData.bidang || '',
             qr_code: `SISWA-${newId.toString().padStart(3, '0')}-QRCODE`,
             qr_verified: false,
             aktif: true
